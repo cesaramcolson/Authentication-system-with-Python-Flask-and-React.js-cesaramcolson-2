@@ -22,3 +22,44 @@ def handle_hello():
     }
 
     return jsonify(response_body), 200
+
+#------------------signup------------------
+
+@api.route("/signup", methods=["POST"])
+def signup():
+    username = request.json.get('username')
+    email = request.json.get('email')
+    password = request.json.get('password')
+
+    if not username or not email or not password:
+        return jsonify({"error": "Missing required parameters"}), 400
+    
+    if User.query.filter_by(email=email).first() or User.query.filter_by(username=username).first():
+        return jsonify({"error": "User already exist"}), 409
+    
+    user = User(email=email, username=username)
+    user.set_password(password)
+    db.session.add(user)
+    db.session.commit()
+
+    token = user.generate_token()
+    return jsonify({"token": token}), 201
+
+
+#------------------login------------------
+
+@api.route("/login", methods=["POST"])
+def login():
+    email = request.json.get('email')
+    password = request.json.get('password')
+
+    if not email or not password:
+        return jsonify({"error": "Missing required parameters"}), 400
+    
+    user = User.query.filter_by(email=email).first()
+
+    if user is None or not user.check_password(password):
+        return jsonify({"error": "Invalid credentials"}), 401
+    
+    token = user.generate_token()
+    return jsonify({"token": token}), 200
