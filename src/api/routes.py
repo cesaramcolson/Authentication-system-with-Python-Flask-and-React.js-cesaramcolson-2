@@ -63,3 +63,13 @@ def login():
     
     token = user.generate_token()
     return jsonify({"token": token}), 200
+
+
+#----------------get private data----------
+
+@api.route("/private", methods=["GET"])
+@jwt_required()
+def get_private_data():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    return jsonify({"Private Data": user.serialize()}), 200
