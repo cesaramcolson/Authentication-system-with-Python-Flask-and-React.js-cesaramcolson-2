@@ -73,3 +73,46 @@ def get_private_data():
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
     return jsonify({"Private Data": user.serialize()}), 200
+
+#----------------update user--------------
+
+@api.route("/user", methods=["PUT"])
+@jwt_required()
+def update_user():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"error": "User not Found"}), 404
+    
+    username = request.json.get('username')
+    email = request.json.get('email')
+    password = request.json.get('password')
+
+    if username:
+        user.username = username
+    if email:
+        user.email = email
+    if password:
+        user.set_password(password)
+
+    db.session.commit()
+
+    return jsonify({"msj": "User Updated successfully", "user": user.serialize()}), 200
+
+
+#-------------delete user---------------
+
+@api.route('/user', methods=['DELETE'])
+@jwt_required
+def delete_user():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"error": "user not found"}), 404
+    
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({"msj": "User deleted successfully"}), 200
